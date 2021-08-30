@@ -1,0 +1,112 @@
+---
+title: "DATA 607 HW 1"
+author: "Shane Hylton"
+date: "8/29/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Predicting MLB Games 2021
+
+This fivethirtyeight article sought to predict the result of individual games in the 2021 MLB season. They also maintain a list of all MLB teams and predictions for their chances to make the playoffs and advance to the world series. The list is updated after every game, so the data is always changing. https://projects.fivethirtyeight.com/2021-mlb-predictions/games/
+
+I will create a subset of the data only showing games that have been completed. My goal is to plot team ratings over time for a select group of teams. 
+
+```{r}
+link <- 'https://raw.githubusercontent.com/st3vejobs/mlb2021/main/mlb_elo_latest.csv'
+mlbraw <- read.csv(url(link), na.strings = "")
+mlb <- na.omit(subset(mlbraw[mlbraw$rating1_post > 0, ], select = -c(playoff)))
+mlb <- mlb[order(mlb$date, decreasing = FALSE), ]
+colnames(mlb)[colnames(mlb) == 'rating1_post'] <- "Team_1_Final"
+colnames(mlb)[colnames(mlb) == 'rating2_post'] <- "Team_2_Final"
+
+
+dodgers <- subset(mlb[mlb$team1 == "LAD" | mlb$team2 == "LAD", ])
+dodgerst1 <- subset(dodgers[dodgers$team1 == "LAD", ])
+dodgerst2 <- subset(dodgers[dodgers$team2 == "LAD", ])
+dodgers_rating1 <- data.frame(cbind(dodgerst1$date, dodgerst1$team1, dodgerst1$Team_1_Final))
+dodgers_rating2 <- data.frame(cbind(dodgerst2$date, dodgerst2$team2, dodgerst2$Team_2_Final))
+dodgers_rating <- rbind(dodgers_rating1, dodgers_rating2)
+colnames(dodgers_rating) <- c('Date', 'Name', 'Rating')
+
+
+redsox <- subset(mlb[mlb$team1 == "BOS" | mlb$team2 == "BOS", ])
+redsoxt1 <- subset(redsox[redsox$team1 == "BOS", ])
+redsoxt2 <- subset(dodgers[dodgers$team2 == "BOS", ])
+redsox_rating1 <- data.frame(cbind(redsoxt1$date, redsoxt1$team1, redsoxt1$Team_1_Final))
+redsox_rating2 <- data.frame(cbind(redsoxt2$date, redsoxt2$team2, redsoxt2$Team_2_Final))
+redsox_rating <- rbind(redsox_rating1, redsox_rating2)
+colnames(redsox_rating) <- c('Date', 'Name', 'Rating')
+
+astros <- subset(mlb[mlb$team1 == "HOU" | mlb$team2 == "HOU", ])
+astrost1 <- subset(astros[astros$team1 == "HOU", ])
+astrost2 <- subset(astros[astros$team2 == "HOU", ])
+astros_rating1 <- data.frame(cbind(astrost1$date, astrost1$team1, astrost1$Team_1_Final))
+astros_rating2 <- data.frame(cbind(astrost2$date, astrost2$team2, astrost2$Team_2_Final))
+astros_rating <- rbind(astros_rating1, astros_rating2)
+colnames(astros_rating) <- c('Date', 'Name', 'Rating')
+
+
+whitesox <- subset(mlb[mlb$team1 == "CHW" | mlb$team2 == "CHW", ])
+whitesoxt1 <- subset(whitesox[whitesox$team1 == "CHW", ])
+whitesoxt2 <- subset(whitesox[whitesox$team2 == "CHW", ])
+whitesox_rating1 <- data.frame(cbind(whitesoxt1$date, whitesoxt1$team1, whitesoxt1$Team_1_Final))
+whitesox_rating2 <- data.frame(cbind(whitesoxt2$date, whitesoxt2$team2, whitesoxt2$Team_2_Final))
+whitesox_rating <- rbind(whitesox_rating1, whitesox_rating2)
+colnames(whitesox_rating) <- c('Date', 'Name', 'Rating')
+
+
+```
+
+## Plots
+
+Now that I have a few sets of ratings for each team, I will plot those ratings over time. 
+
+```{r}
+library(ggplot2)
+ggplot(dodgers_rating, aes(x = Date, y = Rating))+ 
+  geom_point(size=1, color = "blue")+
+  ggtitle('Dodgers Team Rating To Date')+
+  xlab('Date')+
+  ylab('Rating')+
+  scale_x_discrete(guide = guide_axis(check.overlap = TRUE))+
+  scale_y_discrete(guide = guide_axis(check.overlap = TRUE))+
+  theme(plot.title = element_text(hjust = 0.5))
+
+ggplot(redsox_rating, aes(x = Date, y = Rating))+ 
+  geom_point(size=1, color = "blue")+
+  ggtitle('Red Sox Team Rating To Date')+
+  xlab('Date')+
+  ylab('Rating')+
+  scale_x_discrete(guide = guide_axis(check.overlap = TRUE))+
+  scale_y_discrete(guide = guide_axis(check.overlap = TRUE))+
+  theme(plot.title = element_text(hjust = 0.5))
+
+ggplot(astros_rating, aes(x = Date, y = Rating))+ 
+  geom_point(size=1, color = "blue")+
+  ggtitle('Astros Team Rating To Date')+
+  xlab('Date')+
+  ylab('Rating')+
+  scale_x_discrete(guide = guide_axis(check.overlap = TRUE))+
+  scale_y_discrete(guide = guide_axis(check.overlap = TRUE))+
+  theme(plot.title = element_text(hjust = 0.5))
+
+ggplot(whitesox_rating, aes(x = Date, y = Rating))+ 
+  geom_point(size=1, color = "blue")+
+  ggtitle('White Sox Team Rating To Date')+
+  xlab('Date')+
+  ylab('Rating')+
+  scale_x_discrete(guide = guide_axis(check.overlap = TRUE))+
+  scale_y_discrete(guide = guide_axis(check.overlap = TRUE))+
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+## Conclusions
+
+Visual analysis reveals that the Astros and White Sox have trended generally upwards since the season's inception, while the Dodgers have followed more of a sinusoidal curve, and they are about as well rated now as they were four months ago. The Astros' rating has followed an interesting path. Their rating fluctuated early in the season, bouncing between 1540 and 1562. They never broke through the resistance at 1562 until the halfway point in the season. Since breaking through the 1562 resistance, they have remained above a line of support at around 1562, while continuing the sporadic fluctuation seen earlier in the season. 
+
+As a further study, I would like to plot the rating data for every team in the MLB and see what conclusions may be drawn from additional data. I would also like to find ways to overlay multiple teams on the same graph. Another task I would like to learn how to accomplish is to be able to add a line showing when the MLB trade deadline took place to see if teams had spikes in their ratings after the trade deadline. 
